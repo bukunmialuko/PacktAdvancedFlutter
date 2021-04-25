@@ -12,55 +12,48 @@ class MyApp extends StatefulWidget {
   _State createState() => new _State();
 }
 
-class AnimatedLogo extends AnimatedWidget {
-  static final _opactityTween = new Tween<double>(begin: 0.1, end: 1.0);
-  static final _sizeTween = new Tween<double>(begin: 0.0, end: 300.0);
-  static final _rotateTween = new Tween<double>(begin: 0.0, end: 12.0);
+class MyButton extends AnimatedWidget {
+  bool large = false;
 
-  AnimatedLogo({Key key, Animation<double> animation})
-      : super(key: key, listenable: animation);
+  static final _sizeTween = new Tween<double>(begin: 1.0, end: 2.0);
+  AnimationController controller;
+  MyButton(
+      {Key key, Animation<double> animation, AnimationController controller})
+      : super(key: key, listenable: animation) {
+    this.controller = controller;
+  }
+
+  void onPressed() {
+    if (!large) {
+      controller.forward();
+      large = true;
+    } else {
+      controller.reverse();
+      large = false;
+    }
+  }
 
   Widget build(BuildContext context) {
     final Animation<double> animation = listenable;
-
-    return new Center(
-      child: new Transform.rotate(
-        angle: _rotateTween.evaluate(animation),
-        child: new Opacity(
-          opacity: _opactityTween.evaluate(animation),
-          child: new Container(
-            margin: new EdgeInsets.symmetric(vertical: 10.0),
-            height: _sizeTween.evaluate(animation),
-            width: _sizeTween.evaluate(animation),
-            child: new FlutterLogo(),
-          ),
-        ),
+    return new Transform.scale(
+      scale: _sizeTween.evaluate(animation),
+      child: new RaisedButton(
+        onPressed: onPressed,
+        child: new Text('Click me'),
       ),
     );
   }
 }
 
 class _State extends State<MyApp> with TickerProviderStateMixin {
-  Animation animation;
+  Animation<double> animation;
   AnimationController controller;
 
-  @override
-  void initState() {
+  initState() {
     super.initState();
     controller = new AnimationController(
-        duration: const Duration(milliseconds: 2000), vsync: this);
+        duration: const Duration(milliseconds: 1000), vsync: this);
     animation = new CurvedAnimation(parent: controller, curve: Curves.easeIn);
-
-    animation.addStatusListener(listener);
-    controller.forward();
-  }
-
-  void listener(AnimationStatus status) {
-    if (status == AnimationStatus.completed) {
-      controller.reverse();
-    } else if (status == AnimationStatus.dismissed) {
-      controller.forward();
-    }
   }
 
   @override
@@ -70,10 +63,16 @@ class _State extends State<MyApp> with TickerProviderStateMixin {
         title: new Text('Name here'),
       ),
       body: new Container(
-          padding: new EdgeInsets.all(32.0),
-          child: new AnimatedLogo(
-            animation: animation,
-          )),
+        padding: new EdgeInsets.all(32.0),
+        child: new Center(
+          child: new Column(
+            children: <Widget>[
+              new Text('Widgets here'),
+              new MyButton(animation: animation, controller: controller)
+            ],
+          ),
+        ),
+      ),
     );
   }
 }
